@@ -66,14 +66,14 @@ const App = () => {
               <div>
                 <nav>
                   <div className="nav-container">
-                    <a href="https://jujudevils.com" target="_blank">
-                      <img className="nav-logo" src="/img/juju-logo.png" alt="" />
+                    <a href="https://wcsc.io" target="_blank">
+                      <img className="nav-logo" src="/img/wcsc-logo.png" alt="" />
                     </a>
                     <div className="social-icons">
-                      <a href="https://twitter.com/jujudevilsarmy" target="_blank" className="hide-800">
+                      <a href="https://twitter.com/wcscnft" target="_blank" className="hide-800">
                         <img className="nav-social" src="/icons/twitter.svg" alt="" />
                       </a>
-                      <a href="https://discord.gg/RYJtRUydBu" target="_blank" className="hide-800">
+                      <a href="https://discord.gg/9SS25t5A" target="_blank" className="hide-800">
                         <img className="nav-social" src="/icons/discord.svg" alt="" />
                       </a>
                       <div style={{paddingBottom: 10, display: 'flex', alignItems: 'center'}}>
@@ -85,7 +85,7 @@ const App = () => {
                 <div className="content-wrapper">
                     <header className="card" id="link1">
                       <div style={{ padding: "0 24px 0 24px 0", textAlign: 'center' }}>
-                        <h1 className="pb-3" style={{color: 'white'}}>Mint your JuJu Devil</h1>
+                        <h1 className="pb-3" style={{color: 'white'}}>Mint your Working Cat!</h1>
                       </div>
                       <div style={{textAlign: 'center'}}>
                         

@@ -11,7 +11,7 @@ body {
   color: var(--main-text-color);
   position: relative;
   background-color: black;
-  background-image: url('/src/assets/banner.jpg');
+  background-image: url('/src/assets/banner.gif');
   background-position: center;
   background-size: cover;
   margin: 0;
