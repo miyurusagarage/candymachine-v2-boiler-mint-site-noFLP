@@ -5,7 +5,7 @@ import { CandyMachineAccount } from './candy-machine';
 import { CircularProgress } from '@material-ui/core';
 import { GatewayStatus, useGateway } from '@civic/solana-gateway-react';
 import { useEffect, useState } from 'react';
-import { whitelistSettings, publicSaleSettings, mintPanic } from './userSettings';
+import { mintPanic } from './userSettings';
 import { toDate }  from './utils'
 
 
@@ -37,50 +37,6 @@ export const MintButton = ({
 }) => {
   const { requestGatewayToken, gatewayStatus } = useGateway();
   const [clicked, setClicked] = useState(false);
-  const whitelistStartDate = toDate(whitelistSettings.startDate)?.getTime();
-  const whitelistEndDate = toDate(whitelistSettings.endDate)?.getTime();
-  const publicMintStart = toDate(publicSaleSettings.startDate)?.getTime();
-  const publicMintEnd = toDate(publicSaleSettings.endDate)?.getTime();
-
-  function whiteListSaleCheck() {
-    if (whitelistSettings.enabled && (whitelistStartDate && whitelistEndDate ) && Date.now() > whitelistStartDate && Date.now() < whitelistEndDate) {
-      
-      return true
-    } else {
-      
-      return false
-    }
-  }
-  
-  let WhitelistMintActive = whiteListSaleCheck()
-  console.log('is Whitelist Sale Active? ' + whiteListSaleCheck())
-
-  function publicSaleCheck() {
-
-    if (publicMintStart && publicMintEnd){
-      if(Date.now() > publicMintStart && Date.now() < publicMintEnd){
-        return true
-      } else {
-        return false
-      }
-    }
-    else if (publicMintStart) {
-      if (Date.now() > publicMintStart){
-        return true
-      } else {
-        return false
-      }
-    
-    }
-
-
-  }
-
-  let PublicMintActive = publicSaleCheck()
-
-  console.log('is public sale live? '+ publicSaleCheck())
-  
-  console.log(candyMachine?.state.isSoldOut, isMinting, (WhitelistMintActive || PublicMintActive) ,!candyMachine?.state.isActive)
 
   useEffect(() => {
     if (gatewayStatus === GatewayStatus.ACTIVE && clicked) {
@@ -95,10 +51,7 @@ export const MintButton = ({
       disabled={
         candyMachine?.state.isSoldOut ||
         isMinting ||
-        mintPanic.enabled ||
-        !(WhitelistMintActive || PublicMintActive)
-        
-
+        mintPanic.enabled
       }
       onClick={async () => {
         setClicked(true);

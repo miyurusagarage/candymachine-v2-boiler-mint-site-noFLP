@@ -43,7 +43,7 @@ export interface WelcomeSettings {
   title: string,
   desc: string | undefined,
   countdownEnable: boolean,
-  countdownTo: anchor.BN | undefined,
+  countdownTo: anchor.BN,
   showPrice: boolean,
   enableCustomHTML: boolean,
 

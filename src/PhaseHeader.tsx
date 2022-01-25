@@ -6,8 +6,6 @@ import { toDate } from "./utils";
 import { CandyMachineAccount } from "./candy-machine";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
-  publicSaleSettings,
-  whitelistSettings,
   welcomeSettings,
   mintPanic,
 } from "./userSettings";
@@ -32,32 +30,17 @@ export function getPhase(
   candyMachine: CandyMachineAccount | undefined
 ): Phase {
   const curr = new Date().getTime();
-  // const candyMachineGoLive = toDate(candyMachine?.state.goLiveDate)?.getTime();
-  const whiteListStart = toDate(whitelistSettings.startDate)?.getTime();
-  const whiteListEnd = toDate(whitelistSettings.endDate)?.getTime();
-  const publicSaleStart = toDate(publicSaleSettings.startDate)?.getTime();
-  // const publicSaleEnd = toDate(publicSaleSettings.endDate)?.getTime();
-
-  //Countdown, WhiteList Minting, Public Minting,
-
+  const publicSaleStart = toDate(welcomeSettings.countdownTo)?.getTime();
   if (mintPanic.enabled === true) {
     return Phase.Panic;
   } else if (publicSaleStart && curr > publicSaleStart) {
     return Phase.PublicMint;
-  } else if (
-    whitelistSettings.enabled &&
-    whiteListStart &&
-    whiteListEnd &&
-    curr > whiteListStart &&
-    curr < whiteListEnd
-  ) {
-    return Phase.WhiteListMint;
   } else {
     return Phase.Welcome;
   }
 }
 
-const Header = (props: {
+export const Header = (props: {
   phaseName: string;
   desc: string | undefined;
   date?: anchor.BN | undefined;
@@ -85,7 +68,7 @@ const Header = (props: {
       <Grid container className="mintHeader" alignItems="center">
         <Grid>
           <Typography
-            variant="h5"
+            variant="h6"
             style={{ fontWeight: 600, textAlign: "center" }}
             className="pb-2"
           >
@@ -93,11 +76,6 @@ const Header = (props: {
           </Typography>
         </Grid>
       </Grid>
-      {desc && (
-        <Typography className="pb-2" variant="body1" color="textSecondary">
-          {desc}
-        </Typography>
-      )}
     </>
   );
 };
@@ -118,8 +96,6 @@ export const PhaseHeader = ({
   
 }: PhaseHeaderProps) => {
   const wallet = useWallet();
-  console.log("D", candyMachine);
-  console.log("Wallet", wallet);
 
   return (
     <>
@@ -134,30 +110,6 @@ export const PhaseHeader = ({
           date={welcomeSettings.countdownTo}
           countdownEnable={welcomeSettings.countdownEnable}
         />
-      )}
-
-      {phase === Phase.WhiteListMint && (
-        <>
-          <Header
-            phaseName={whitelistSettings.title}
-            desc={whitelistSettings.desc}
-            date={whitelistSettings.endDate}
-            countdownEnable={whitelistSettings.countdown}
-            status="WHITELIST LIVE"
-          />
-        </>
-      )}
-
-      {phase === Phase.PublicMint && (
-        <>
-          <Header
-            phaseName={publicSaleSettings.title}
-            desc={publicSaleSettings.desc}
-            date={publicSaleSettings.endDate}
-            countdownEnable={publicSaleSettings.countdown}
-            status="LIVE"
-          />
-        </>
       )}
     </>
   );

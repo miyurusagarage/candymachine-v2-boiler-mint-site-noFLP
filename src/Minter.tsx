@@ -22,25 +22,17 @@ import {
 
 import { AlertState } from "./utils";
 import { MintButton } from "./MintButton";
-import { getPhase, Phase, PhaseHeader } from "./PhaseHeader";
+import { getPhase, Header, Phase, PhaseHeader } from "./PhaseHeader";
 import { GatewayProvider } from "@civic/solana-gateway-react";
 import {
-  whitelistSettings,
-  publicSaleSettings,
-  welcomeSettings,
-  MintWelcomeCustomHTML,
-  MintWhitelistCustomHTML,
-  MintPublicSaleCustomHTML,
+  welcomeSettings
 } from "./userSettings";
+import { number } from "prop-types";
 
 const ConnectButton = styled(WalletDialogButton)`
-  position: absolute;
-  left: 0px;
-  bottom: -15px;
   width: 100%;
   height: 60px;
-  margin-top: 10px;
-  margin-bottom: 5px;
+  margin-top: 40px;
   background: linear-gradient(180deg, #604ae5 0%, #813eee 100%);
   color: white;
   font-size: 16px;
@@ -49,7 +41,6 @@ const ConnectButton = styled(WalletDialogButton)`
 `;
 
 const MintContainer = styled.div`
-  position: absolute;
   width: 100%;
   left: 0px;
   bottom: 15px;
@@ -72,10 +63,12 @@ const Home = (props: HomeProps) => {
   const [mintingTotal, setMintingTotal] = useState<number | null>(null);
   const [itemsAvailable, setItemsAvailable] = useState<number | null>(null);
   const [publicKey, setPublicKey] = useState<PublicKey>();
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false);
 
   const [candyMachine, setCandyMachine] = useState<CandyMachineAccount>();
 
   const [price, setPrice] = useState<number | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
 
   const wallet = useWallet();
 
@@ -125,7 +118,7 @@ const Home = (props: HomeProps) => {
         if (!status?.err) {
           setAlertState({
             open: true,
-            message: "Congratulations! Mint succeeded!",
+            message: "Congratulations! Mint succeeded! Please wait a few seconds for the wallet to update.",
             severity: "success",
           });
 
@@ -168,7 +161,8 @@ const Home = (props: HomeProps) => {
         severity: "error",
       });
     } finally {
-      setIsMinting(false);
+      setIsMinting(true);
+      setIsBalanceLoading(true);
     }
   };
 
@@ -179,7 +173,7 @@ const Home = (props: HomeProps) => {
         return;
       }
       console.log("wallet connected");
-      if(anchorWallet.publicKey){
+      if(anchorWallet?.publicKey){
       setPublicKey(anchorWallet.publicKey)
       }
 
@@ -248,94 +242,67 @@ const Home = (props: HomeProps) => {
     if (candyMachine?.state.price) {
       setPrice(candyMachine?.state.price.toNumber() / 1000000000);
     }
+
+    getBalance();
+
+    if (wallet && wallet.publicKey) {
+      props.connection.onAccountChange(wallet.publicKey, () => {
+        getBalance();
+        setIsBalanceLoading(false);
+        setIsMinting(false);
+      })
+    }
+
   }, [candyMachine, publicKey, props.connection]);
 
   const phase = getPhase(candyMachine);
+
+  const shortenAddress = (address: string, chars = 4): string => {
+    return `${address.slice(0, chars)}...${address.slice(-chars)}`;
+  };
+
+  const getBalanceInSolana = (balance: number): number => {
+    var balance = Math.round(((balance / 1000000000) + Number.EPSILON) * 100000) / 100000;
+    return balance;
+  };
+  
+  const getBalance = async () => {
+    var balance = wallet && wallet.publicKey ? await props.connection.getBalance(wallet?.publicKey) : '';
+    setBalance(+balance);
+  }
 
   return (
     <Container>
       <Container maxWidth="xs" style={{ position: "relative" }}>
         <Paper
           style={{
-            padding: "34px 24px 90px 24px",
             display: "flex",
-
             borderRadius: 6,
           }}
           className="minting-box"
         >
           <Grid container justifyContent="space-between" direction="column">
-            <PhaseHeader
-              phase={phase}
-              candyMachine={candyMachine}
-              rpcUrl={rpcUrl}
-            />
+            {phase === Phase.Welcome ? <Header
+              desc=""
+              phaseName="Please wait for Mint to go live!"
+              date={welcomeSettings.countdownTo}
+              countdownEnable={welcomeSettings.countdownEnable}
+            /> : (
+              <div>
+              {!wallet || !wallet.publicKey && <Header
+                desc=""
+                phaseName="Please connect a wallet"
+                date={welcomeSettings.countdownTo}
+                countdownEnable={false}
+              />}
+            </div>)}
+            <br/>
 
             <div>
-              {phase === Phase.Welcome && welcomeSettings.enableCustomHTML && (
-                <MintWelcomeCustomHTML />
-              )}
-              {phase === Phase.WhiteListMint &&
-                whitelistSettings.enableCustomHTML && (
-                  <MintWhitelistCustomHTML />
-                )}
-              {phase === Phase.PublicMint &&
-                publicSaleSettings.enableCustomHTML && (
-                  <MintPublicSaleCustomHTML />
-                )}
-
-              {(phase === Phase.PublicMint || Phase.WhiteListMint) && (
+              {(phase === Phase.PublicMint) && (
                 <>
-                  {phase === Phase.WhiteListMint && (
-                    <div className="card minting-info text-center">
-                      {whiteListTokenBalance >= 0 ? (
-                        <h1>{whiteListTokenBalance}</h1>
-                      ) : (
-                        <div className="loading"></div>
-                      )}
-
-                      <div>
-                        <p>Mints to Claim</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <Grid
-                    container
-                    justifyContent="space-between"
-                    color="textSecondary"
-                  >
-                    <div className="test-stat">
-                      {(phase === Phase.WhiteListMint ||
-                        phase === Phase.PublicMint) &&
-                        (itemsAvailable !== null && mintingTotal !== null ? (
-                          <p>{mintingTotal + " / " + itemsAvailable}</p>
-                        ) : (
-                          <p className="loading"></p>
-                        ))}
-                    </div>
-
-                    <div className="text-end">
-                      {(phase === Phase.Welcome && welcomeSettings.showPrice) ||
-                      phase === Phase.WhiteListMint ||
-                      phase === Phase.PublicMint ? (
-                        <>
-                          {price ? (
-                            <p>{price} Sol</p>
-                          ) : (
-                            <p className="loading"></p>
-                          )}
-                        </>
-                      ) : (
-                        ""
-                      )}
-
-                      {/* {formatSol(yourSOLBalance || 0).toLocaleString()} SOL */}
-                    </div>
-                  </Grid>
-
                   {!wallet.connected ? (
-                    <ConnectButton>Connect{""}</ConnectButton>
+                    <ConnectButton>Connect Wallet</ConnectButton>
                   ) : (
                     <MintContainer>
                       {candyMachine?.state.isActive &&
@@ -374,8 +341,41 @@ const Home = (props: HomeProps) => {
                       )}
                     </MintContainer>
                   )}
+                  <br/>
+                  <p style={{color: 'white'}}>{wallet && wallet.publicKey ? 'Wallet Connected : ' : ''} {shortenAddress(wallet.publicKey?.toString() || '')}</p>
+                  {wallet && wallet.publicKey && balance && isBalanceLoading ? <p style={{color: 'white'}}>Wallet Balance : Loading...</p> : ''}
+                  {wallet && wallet.publicKey && balance != undefined && !isBalanceLoading ? <p style={{color: 'white'}}>Wallet Balance : {getBalanceInSolana(balance)}</p> : ''}
+                  <br/>
                 </>
               )}
+              <Grid
+                    color="textSecondary"
+                  >
+                    <div className="test-stat">
+                      {(phase === Phase.PublicMint) &&
+                        (itemsAvailable !== null && mintingTotal !== null ? (
+                          <p> Minted / Total : {Math.min(1000, mintingTotal) + " / " + 1000}</p>
+                        ) : (
+                          <p className="loading"></p>
+                        ))}
+                    </div>
+
+                    <div className="">
+                      {phase === Phase.PublicMint ? (
+                        <>
+                          {price ? (
+                            <p>Price : {price} Sol</p>
+                          ) : (
+                            <p className="loading"></p>
+                          )}
+                        </>
+                      ) : (
+                        ""
+                      )}
+
+                      {/* {formatSol(yourSOLBalance || 0).toLocaleString()} SOL */}
+                    </div>
+                  </Grid>
             </div>
           </Grid>
         </Paper>
