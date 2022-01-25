@@ -354,7 +354,7 @@ const Home = (props: HomeProps) => {
                     <div className="test-stat">
                       {(phase === Phase.PublicMint) &&
                         (itemsAvailable !== null && mintingTotal !== null ? (
-                          <p> Minted / Total : {Math.min(1000, mintingTotal) + " / " + 1000}</p>
+                          <p> Minted / Total : {mintingTotal + " / " + itemsAvailable}</p>
                         ) : (
                           <p className="loading"></p>
                         ))}
